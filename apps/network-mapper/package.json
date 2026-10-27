@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:e2e": "node e2e/acceptance.mjs"
+    "test:e2e": "node e2e/acceptance.mjs",
+    "build:artifact": "tsc --noEmit && vite build --mode artifact && node scripts/build-artifact.mjs"
   },
   "dependencies": {
     "cytoscape": "^3.30.4",

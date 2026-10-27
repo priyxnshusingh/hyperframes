@@ -14,7 +14,7 @@ export interface PersistedState {
 }
 
 export interface NetworkStorage {
-  kind: "indexeddb" | "localStorage" | "memory";
+  kind: "artifact" | "indexeddb" | "localStorage" | "memory";
   load(): Promise<PersistedState | null>;
   /** Persists `next`, writing only what changed since `prev` (null = full rewrite). */
   saveNetwork(prev: NetworkData | null, next: NetworkData): Promise<void>;
@@ -173,7 +173,24 @@ export function memoryStorage(): NetworkStorage {
   };
 }
 
+/** Private per-viewer storage when running as a claude.ai Artifact; null elsewhere. */
+async function openArtifactStorage(): Promise<NetworkStorage | null> {
+  const runtime = typeof window !== "undefined" ? window.claude : undefined;
+  if (!runtime) return null;
+  try {
+    const [db, user] = await Promise.all([runtime.use("db"), runtime.use("user")]);
+    const id = db && user ? await user.id() : null;
+    if (!db || !id) return null;
+    const { claudeDbStorage } = await import("./claudeDb");
+    return claudeDbStorage(db, id);
+  } catch {
+    return null;
+  }
+}
+
 export async function openBestStorage(): Promise<NetworkStorage> {
+  const artifact = await openArtifactStorage();
+  if (artifact) return artifact;
   try {
     if (typeof indexedDB !== "undefined") return await openIndexedDbStorage();
   } catch {

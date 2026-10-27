@@ -385,10 +385,17 @@ export const GraphCanvas = forwardRef<GraphHandle, Props>(function GraphCanvas(p
       cy.style(buildStylesheet(themeRef.current));
     };
     media.addEventListener("change", onTheme);
+    // A claude.ai viewer switches themes through data-theme on the root element.
+    const themeObserver = new MutationObserver(onTheme);
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
     const ro = new ResizeObserver(() => cy.resize());
     ro.observe(container);
     return () => {
       media.removeEventListener("change", onTheme);
+      themeObserver.disconnect();
       ro.disconnect();
       cy.destroy();
       cyRef.current = null;

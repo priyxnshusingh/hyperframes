@@ -11,7 +11,7 @@ import { PersonPicker } from "./components/PersonPicker";
 import { ProfilePanel } from "./components/ProfilePanel";
 import { SettingsPanel, type ExportKind } from "./components/SettingsPanel";
 import { TopBar } from "./components/TopBar";
-import { dateStamp, downloadBlob, downloadText } from "./export/download";
+import { dateStamp, downloadBlob, downloadText, type DownloadResult } from "./export/download";
 import { computeAnalytics, deriveGraph } from "./model/analytics";
 import { EMPTY_FILTERS, isFiltering, visiblePeople, type Filters } from "./model/filters";
 import { formatCtc, pluralize } from "./model/format";
@@ -310,32 +310,38 @@ export function App() {
     async (kind: ExportKind) => {
       const stamp = dateStamp();
       try {
+        let result: DownloadResult | null = null;
+        let message = "";
         if (kind === "json") {
           const file = toExportFile(data, positions, settings);
-          downloadText(JSON.stringify(file, null, 2), `network-${stamp}.json`, "application/json");
-          toast(
-            `Exported ${pluralize(file.people.length, "person", "people")} and ${pluralize(file.connections.length, "connection")}`,
+          result = await downloadText(
+            JSON.stringify(file, null, 2),
+            `network-${stamp}.json`,
+            "application/json",
           );
+          message = `Exported ${pluralize(file.people.length, "person", "people")} and ${pluralize(file.connections.length, "connection")}`;
         } else if (kind === "csv") {
           // BOM so spreadsheet apps read ₹ and non-Latin names correctly.
-          downloadText(
-            `﻿${toCsv(data, settings.currency)}`,
+          result = await downloadText(
+            `\uFEFF${toCsv(data, settings.currency)}`,
             `network-people-${stamp}.csv`,
             "text/csv;charset=utf-8",
           );
-          toast("Exported people & CTC as CSV");
+          message = "Exported people & CTC as CSV";
         } else if (kind === "png") {
           const blob = await graphRef.current?.exportPng();
-          if (blob) downloadBlob(blob, `network-map-${stamp}.png`);
-          toast("Exported map as PNG");
+          if (blob) result = await downloadBlob(blob, `network-map-${stamp}.png`);
+          message = "Exported map as PNG";
         } else {
           const svg = graphRef.current?.exportSvg();
-          if (svg) downloadText(svg, `network-map-${stamp}.svg`, "image/svg+xml");
-          toast("Exported map as SVG");
+          if (svg) result = await downloadText(svg, `network-map-${stamp}.svg`, "image/svg+xml");
+          message = "Exported map as SVG";
         }
+        if (result === "saved") toast(message);
+        else if (result === "declined") toast("Export cancelled");
       } catch (err) {
         console.error(err);
-        toast("Export failed — see console for details");
+        toast(err instanceof Error ? `Export failed: ${err.message}` : "Export failed");
       }
     },
     [data, positions, settings, toast],

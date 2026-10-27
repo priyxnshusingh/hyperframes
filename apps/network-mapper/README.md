@@ -20,6 +20,10 @@ Production build: `bun run build`, then `bun run preview` (or host the static `d
 | `bun run test`                      | Unit tests (graph model, analytics, import/export, IndexedDB)    |
 | `bun run build && bun run test:e2e` | Browser acceptance run (needs Playwright + Chromium) — see below |
 
+## Publishing as a claude.ai Artifact
+
+`bun run build:artifact` packs the app into one self-contained page, `dist-artifact/network-map.html`, for publishing as a claude.ai Artifact with the `db`, `user` and `downloads` capabilities. In that frame the app saves to the viewer's private Artifact storage (readable only by that viewer, on any device they sign in from) instead of IndexedDB, and exports go through the viewer's save dialog. Run anywhere else, it keeps using IndexedDB and plain downloads.
+
 ## Using it
 
 - **Add a person**: use the _People_ tab on the left. Only the name is required. The CTC is optional and is entered in **LPA** by default (switch the unit to Cr or ₹). "Connect to" starts as _you_. Remove that chip to add someone unconnected, or search to connect them to anyone. While you type a name, people with similar names are listed so you don't create duplicates.

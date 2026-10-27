@@ -111,13 +111,15 @@ export function SettingsPanel({
           }}
         />
         <small className="hint">
-          {storageKind === "indexeddb"
-            ? "Every change is saved automatically in this browser (IndexedDB). Export a JSON backup to move devices."
-            : storageKind === "localStorage"
-              ? "Saving to this browser's local storage (IndexedDB unavailable)."
-              : storageKind === "memory"
-                ? "⚠ This browser blocks storage — changes will be lost on refresh. Export a backup!"
-                : "Opening storage…"}
+          {storageKind === "artifact"
+            ? "Every change is saved automatically to your private storage for this page, on any device you sign in from."
+            : storageKind === "indexeddb"
+              ? "Every change is saved automatically in this browser (IndexedDB). Export a JSON backup to move devices."
+              : storageKind === "localStorage"
+                ? "Saving to this browser's local storage (IndexedDB unavailable)."
+                : storageKind === "memory"
+                  ? "⚠ This browser blocks storage — changes will be lost on refresh. Export a backup!"
+                  : "Opening storage…"}
         </small>
       </section>
 
